@@ -37,15 +37,7 @@
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        .debug-info {
-            background: #f0f9ff;
-            border: 1px solid #0ea5e9;
-            border-radius: 8px;
-            padding: 12px;
-            margin: 16px 0;
-            font-family: monospace;
-            font-size: 12px;
-        }
+
     </style>
 </head>
 <body class="bg-gray-50">
@@ -72,7 +64,7 @@
                         const worksheet = workbook.Sheets[sheetName];
                         const jsonData = XLSX.utils.sheet_to_json(worksheet);
                         
-                        console.log('📊 原始数据样本:', jsonData.slice(0, 2));
+
                         
                         if (jsonData.length === 0) {
                             reject(new Error('文件格式不正确或没有数据'));
@@ -84,8 +76,7 @@
                         const hasRequiredFields = requiredFields.every(field => field in jsonData[0]);
                         
                         if (!hasRequiredFields) {
-                            console.log('❌ 缺少字段:', requiredFields.filter(field => !(field in jsonData[0])));
-                            console.log('📋 实际字段:', Object.keys(jsonData[0]));
+
                             reject(new Error('文件格式不正确，缺少必要的订单字段（订单编码、网点编码、网点名称、商品编码、商品名称、销售单价）'));
                             return;
                         }
@@ -101,15 +92,13 @@
         };
 
         const transformOrderData = (orderData) => {
-            console.log('🔄 开始转换数据，共', orderData.length, '条记录');
+
             
             return orderData.map((order, index) => {
                 // 判断是否为赠品（根据商品类型判断）
                 const 是否赠品 = ["常规赠品", "活动赠品", "费用兑换品"].includes(order.商品类型) ? "是" : "";
                 
-                // 调试：检查销售单价字段
-                const originalPrice = order["销售单价(元)"];
-                console.log(`📝 第${index + 1}条记录 - 原始销售单价:`, originalPrice, '类型:', typeof originalPrice);
+
                 
                 // 创建转换后的数据对象，严格按照原项目的字段映射
                 const transformedData = {
@@ -130,13 +119,10 @@
                     "单据单位单价": (() => {
                         const price = order["销售单价(元)"];
                         if (price === undefined || price === null || price === '') {
-                            console.log(`⚠️  第${index + 1}条记录 - 销售单价为空，设置为0`);
                             return 0;
                         }
                         const numPrice = Number(price);
-                        const result = isNaN(numPrice) ? 0 : numPrice;
-                        console.log(`✅ 第${index + 1}条记录 - 销售单价转换: ${price} → ${result}`);
-                        return result;
+                        return isNaN(numPrice) ? 0 : numPrice;
                     })(),
                     单据单位数量: (() => {
                         const quantity = order.销售数量;
@@ -168,7 +154,7 @@
 
         const generateExportFile = (data) => {
             try {
-                console.log('📤 开始生成导出文件，数据条数:', data.length);
+
                 
                 // 导出字段顺序，严格按照原项目的导出模板
                 const exportColumns = [
@@ -188,11 +174,9 @@
                             const value = item[column];
                             if (value === undefined || value === null || value === '') {
                                 exportItem[column] = 0;
-                                console.log(`🔧 第${index + 1}条记录 - ${column}字段为空，设置为0`);
                             } else {
                                 const numValue = Number(value);
                                 exportItem[column] = isNaN(numValue) ? 0 : numValue;
-                                console.log(`✅ 第${index + 1}条记录 - ${column}字段: ${value} → ${exportItem[column]}`);
                             }
                         } else {
                             exportItem[column] = item[column] || '';
@@ -201,7 +185,7 @@
                     return exportItem;
                 });
                 
-                console.log('📋 导出数据样本:', filteredData.slice(0, 2));
+
                 
                 // 创建工作簿和工作表，指定列顺序
                 const worksheet = XLSX.utils.json_to_sheet(filteredData, { header: exportColumns });
@@ -212,7 +196,7 @@
                 const blob = new Blob([excelBuffer], { type: 'application/vnd.ms-excel' });
                 return URL.createObjectURL(blob);
             } catch (error) {
-                console.error('❌ 文件生成失败:', error);
+
                 throw new Error('文件生成失败: ' + error.message);
             }
         };
@@ -360,14 +344,7 @@
             return (
                 <div className="mt-8 fade-in">
                     <h3 className="text-lg font-medium text-gray-900 mb-4">转换后数据预览 (显示前5条)</h3>
-                    
-                    {/* 调试信息 */}
-                    <div className="debug-info">
-                        <strong>🔍 调试信息:</strong><br/>
-                        总记录数: {data.length}<br/>
-                        预览记录数: {displayData.length}<br/>
-                        单据单位单价字段值: {displayData.map((row, i) => `第${i+1}条: ${row["单据单位单价"]}`).join(', ')}
-                    </div>
+
                     
                     <div className="overflow-x-auto">
                         <table className="min-w-full bg-white border border-gray-200 rounded-lg">
@@ -442,7 +419,6 @@
             const [errorMessage, setErrorMessage] = useState(null);
 
             const handleFileUpload = async (file) => {
-                console.log('📁 开始处理文件:', file.name);
                 setUploadedFile(file);
                 setProcessingStatus('processing');
                 setErrorMessage(null);
@@ -450,7 +426,6 @@
                 try {
                     // 读取订单文件
                     const orderData = await readOrderFile(file);
-                    console.log('✅ 文件读取成功，记录数:', orderData.length);
 
                     if (orderData.length === 0) {
                         setProcessingStatus('error');
@@ -460,18 +435,15 @@
 
                     // 转换订单数据
                     const transformedData = transformOrderData(orderData);
-                    console.log('✅ 数据转换完成');
                     setProcessedData(transformedData);
 
                     // 生成导出文件
                     const fileUrl = generateExportFile(transformedData);
-                    console.log('✅ 导出文件生成完成');
                     setExportFileUrl(fileUrl);
 
                     // 更新状态
                     setProcessingStatus('success');
                 } catch (error) {
-                    console.error('❌ 处理失败:', error);
                     setProcessingStatus('error');
                     setErrorMessage(error.message);
                 }
@@ -479,7 +451,6 @@
 
             const handleDownload = () => {
                 if (!exportFileUrl || !uploadedFile) {
-                    console.log('❌ 没有可下载的文件');
                     return;
                 }
 
@@ -495,9 +466,8 @@
                     a.click();
                     document.body.removeChild(a);
 
-                    console.log('✅ 文件下载开始:', downloadFileName);
                 } catch (error) {
-                    console.error('❌ 下载失败:', error);
+                    // 静默处理错误
                 }
             };
 
