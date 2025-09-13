@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>React File Processing App</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" crossorigin="anonymous" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #fff, #f0f0f0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .feature-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .feature-card i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #ffd700;
+        }
+        
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .feature-card p {
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+        
+        .upload-area {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            padding: 3rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+        
+        .upload-area:hover {
+            border-color: rgba(255, 255, 255, 0.6);
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .upload-area i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            color: #ffd700;
+        }
+        
+        .upload-area h3 {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+        }
+        
+        .upload-area p {
+            opacity: 0.9;
+            margin-bottom: 2rem;
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            color: #333;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 215, 0, 0.3);
+        }
+        
+        .status {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .status h3 {
+            color: #4ade80;
+            margin-bottom: 1rem;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .container {
+                padding: 1rem;
+            }
+            
+            .features {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-file-alt"></i> 文件处理应用</h1>
+            <p>强大的文件上传、处理和下载工具</p>
+        </div>
+        
+        <div class="features">
+            <div class="feature-card">
+                <i class="fas fa-upload"></i>
+                <h3>文件上传</h3>
+                <p>支持多种文件格式的快速上传，拖拽即可完成操作</p>
+            </div>
+            
+            <div class="feature-card">
+                <i class="fas fa-cogs"></i>
+                <h3>智能处理</h3>
+                <p>自动识别文件类型，提供相应的处理和转换功能</p>
+            </div>
+            
+            <div class="feature-card">
+                <i class="fas fa-download"></i>
+                <h3>快速下载</h3>
+                <p>处理完成后即可下载，支持批量下载和预览</p>
+            </div>
+        </div>
+        
+        <div class="upload-area">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <h3>拖拽文件到此处</h3>
+            <p>或者点击下方按钮选择文件</p>
+            <button class="btn" onclick="selectFile()">
+                <i class="fas fa-folder-open"></i> 选择文件
+            </button>
+        </div>
+        
+        <div class="status">
+            <h3><i class="fas fa-check-circle"></i> 应用状态</h3>
+            <p>✅ GitHub Pages 部署成功</p>
+            <p>🌐 域名：hkforever.github.io/file-processing-app</p>
+            <p>🚀 现在可以配置自定义域名了！</p>
+        </div>
+    </div>
+    
+    <script>
+        function selectFile() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.multiple = true;
+            input.accept = '*/*';
+            
+            input.onchange = function(e) {
+                const files = Array.from(e.target.files);
+                if (files.length > 0) {
+                    alert(`已选择 ${files.length} 个文件：\n${files.map(f => f.name).join('\n')}`);
+                }
+            };
+            
+            input.click();
+        }
+        
+        // 拖拽功能
+        const uploadArea = document.querySelector('.upload-area');
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = 'rgba(255, 255, 255, 0.8)';
+            uploadArea.style.background = 'rgba(255, 255, 255, 0.2)';
+        });
+        
+        uploadArea.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+            uploadArea.style.background = 'rgba(255, 255, 255, 0.1)';
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+            uploadArea.style.background = 'rgba(255, 255, 255, 0.1)';
+            
+            const files = Array.from(e.dataTransfer.files);
+            if (files.length > 0) {
+                alert(`已拖拽 ${files.length} 个文件：\n${files.map(f => f.name).join('\n')}`);
+            }
+        });
+        
+        console.log('🎉 文件处理应用加载成功！');
+        console.log('📍 当前地址：', window.location.href);
+        console.log('🌐 GitHub Pages 部署正常工作');
+    </script>
+</body>
+</html>
