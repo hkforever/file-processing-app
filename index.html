@@ -108,8 +108,22 @@
                     "付款方式": "",
                     单价: "",
                     单据单位: order.单位 || '',
-                    "单据单位单价": Number(order["销售单价(元)"] || 0) || 0,
-                    单据单位数量: order.销售数量 || 0,
+                    "单据单位单价": (() => {
+                        const price = order["销售单价(元)"];
+                        if (price === undefined || price === null || price === '') {
+                            return 0;
+                        }
+                        const numPrice = Number(price);
+                        return isNaN(numPrice) ? 0 : numPrice;
+                    })(),
+                    单据单位数量: (() => {
+                        const quantity = order.销售数量;
+                        if (quantity === undefined || quantity === null || quantity === '') {
+                            return 0;
+                        }
+                        const numQuantity = Number(quantity);
+                        return isNaN(numQuantity) ? 0 : numQuantity;
+                    })(),
                     "单据类型": "",
                     "发货地址": "",
                     备注: "",
@@ -147,7 +161,13 @@
                     exportColumns.forEach(column => {
                         // 对于数值字段，确保0值不被转换为空字符串
                         if (column === "单据单位单价" || column === "单据单位数量") {
-                            exportItem[column] = item[column] !== undefined && item[column] !== null ? item[column] : 0;
+                            const value = item[column];
+                            if (value === undefined || value === null || value === '') {
+                                exportItem[column] = 0;
+                            } else {
+                                const numValue = Number(value);
+                                exportItem[column] = isNaN(numValue) ? 0 : numValue;
+                            }
                         } else {
                             exportItem[column] = item[column] || '';
                         }
@@ -327,10 +347,18 @@
                                     <tr key={index} className="hover:bg-gray-50">
                                         {previewColumns.map((column, cellIndex) => (
                                             <td key={cellIndex} className="px-4 py-3 text-sm text-gray-900 border-b">
-                                                {column === "单据单位单价" || column === "单据单位数量" 
-                                                    ? String(row[column] !== undefined && row[column] !== null ? row[column] : 0)
-                                                    : String(row[column] || '')
-                                                }
+                                                {(() => {
+                                                    if (column === "单据单位单价" || column === "单据单位数量") {
+                                                        const value = row[column];
+                                                        if (value === undefined || value === null || value === '') {
+                                                            return '0';
+                                                        }
+                                                        const numValue = Number(value);
+                                                        return String(isNaN(numValue) ? 0 : numValue);
+                                                    } else {
+                                                        return String(row[column] || '');
+                                                    }
+                                                })()}
                                             </td>
                                         ))}
                                     </tr>
