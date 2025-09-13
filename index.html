@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>React File Processing App</title>
+    <title>文件处理应用</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" crossorigin="anonymous" />
     <style>
         * {
@@ -17,16 +17,19 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
         .container {
-            max-width: 1200px;
+            max-width: 800px;
             margin: 0 auto;
             padding: 2rem;
+            text-align: center;
         }
         
         .header {
-            text-align: center;
             margin-bottom: 3rem;
         }
         
@@ -44,49 +47,12 @@
             opacity: 0.9;
         }
         
-        .features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            margin-bottom: 3rem;
-        }
-        
-        .feature-card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 2rem;
-            text-align: center;
-            transition: transform 0.3s ease;
-        }
-        
-        .feature-card:hover {
-            transform: translateY(-5px);
-        }
-        
-        .feature-card i {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            color: #ffd700;
-        }
-        
-        .feature-card h3 {
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-        }
-        
-        .feature-card p {
-            opacity: 0.9;
-            line-height: 1.6;
-        }
-        
         .upload-area {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
             border: 2px dashed rgba(255, 255, 255, 0.3);
             border-radius: 15px;
             padding: 3rem;
-            text-align: center;
             margin-bottom: 2rem;
             transition: all 0.3s ease;
         }
@@ -134,12 +100,62 @@
             backdrop-filter: blur(10px);
             border-radius: 15px;
             padding: 2rem;
-            text-align: center;
         }
         
         .status h3 {
             color: #4ade80;
             margin-bottom: 1rem;
+        }
+        
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            color: #333;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        
+        .modal-btn {
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.2s;
+            border: none;
+        }
+        
+        .modal-btn.primary {
+            background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .modal-btn.secondary {
+            background: #f8f9fa;
+            color: #333;
+            border: 2px solid #dee2e6;
         }
         
         @media (max-width: 768px) {
@@ -150,10 +166,6 @@
             .container {
                 padding: 1rem;
             }
-            
-            .features {
-                grid-template-columns: 1fr;
-            }
         }
     </style>
 </head>
@@ -161,47 +173,65 @@
     <div class="container">
         <div class="header">
             <h1><i class="fas fa-file-alt"></i> 文件处理应用</h1>
-            <p>强大的文件上传、处理和下载工具</p>
+            <p>GitHub Pages 部署成功！</p>
         </div>
         
-        <div class="features">
-            <div class="feature-card">
-                <i class="fas fa-upload"></i>
-                <h3>文件上传</h3>
-                <p>支持多种文件格式的快速上传，拖拽即可完成操作</p>
-            </div>
-            
-            <div class="feature-card">
-                <i class="fas fa-cogs"></i>
-                <h3>智能处理</h3>
-                <p>自动识别文件类型，提供相应的处理和转换功能</p>
-            </div>
-            
-            <div class="feature-card">
-                <i class="fas fa-download"></i>
-                <h3>快速下载</h3>
-                <p>处理完成后即可下载，支持批量下载和预览</p>
-            </div>
-        </div>
-        
-        <div class="upload-area">
+        <div class="upload-area" onclick="selectFile()">
             <i class="fas fa-cloud-upload-alt"></i>
-            <h3>拖拽文件到此处</h3>
-            <p>或者点击下方按钮选择文件</p>
-            <button class="btn" onclick="selectFile()">
+            <h3>点击上传文件</h3>
+            <p>支持拖拽上传，多种文件格式</p>
+            <button class="btn">
                 <i class="fas fa-folder-open"></i> 选择文件
             </button>
         </div>
         
         <div class="status">
-            <h3><i class="fas fa-check-circle"></i> 应用状态</h3>
-            <p>✅ GitHub Pages 部署成功</p>
+            <h3><i class="fas fa-check-circle"></i> 部署状态</h3>
+            <p>✅ GitHub Pages 正常运行</p>
             <p>🌐 域名：hkforever.github.io/file-processing-app</p>
-            <p>🚀 现在可以配置自定义域名了！</p>
+            <p>🚀 可以配置自定义域名了！</p>
+        </div>
+    </div>
+    
+    <!-- 文件确认模态框 -->
+    <div id="fileModal" class="modal">
+        <div class="modal-content">
+            <h3>文件上传确认</h3>
+            <p id="fileInfo"></p>
+            <div class="modal-buttons">
+                <button class="modal-btn primary" onclick="processFile()">开始处理</button>
+                <button class="modal-btn secondary" onclick="closeModal()">取消</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 处理完成模态框 -->
+    <div id="completeModal" class="modal">
+        <div class="modal-content">
+            <div style="
+                width: 80px;
+                height: 80px;
+                background: linear-gradient(45deg, #4CAF50, #45a049);
+                border-radius: 50%;
+                margin: 0 auto 20px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 40px;
+                color: white;
+            ">✓</div>
+            <h3>处理完成！</h3>
+            <p>文件已成功处理</p>
+            <div class="modal-buttons">
+                <button class="modal-btn primary" onclick="downloadFile()">下载文件</button>
+                <button class="modal-btn secondary" onclick="continueUpload()">继续上传</button>
+            </div>
         </div>
     </div>
     
     <script>
+        let selectedFiles = [];
+        
         function selectFile() {
             const input = document.createElement('input');
             input.type = 'file';
@@ -209,13 +239,59 @@
             input.accept = '*/*';
             
             input.onchange = function(e) {
-                const files = Array.from(e.target.files);
-                if (files.length > 0) {
-                    alert(`已选择 ${files.length} 个文件：\n${files.map(f => f.name).join('\n')}`);
+                selectedFiles = Array.from(e.target.files);
+                if (selectedFiles.length > 0) {
+                    showFileModal(selectedFiles);
                 }
             };
             
             input.click();
+        }
+        
+        function showFileModal(files) {
+            const fileInfo = document.getElementById('fileInfo');
+            fileInfo.innerHTML = `已选择 ${files.length} 个文件：<br>${files.map(f => f.name).join('<br>')}`;
+            
+            const modal = document.getElementById('fileModal');
+            modal.style.display = 'flex';
+        }
+        
+        function closeModal() {
+            document.getElementById('fileModal').style.display = 'none';
+            selectedFiles = [];
+        }
+        
+        function processFile() {
+            document.getElementById('fileModal').style.display = 'none';
+            
+            // 模拟处理过程
+            setTimeout(() => {
+                document.getElementById('completeModal').style.display = 'flex';
+            }, 2000);
+        }
+        
+        function downloadFile() {
+            const content = `文件处理报告
+处理时间: ${new Date().toLocaleString()}
+处理文件: ${selectedFiles.map(f => f.name).join(', ')}
+
+GitHub Pages 部署成功！
+应用地址: https://hkforever.github.io/file-processing-app`;
+            
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = '处理报告.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+        
+        function continueUpload() {
+            document.getElementById('completeModal').style.display = 'none';
+            selectedFiles = [];
         }
         
         // 拖拽功能
@@ -238,15 +314,20 @@
             uploadArea.style.borderColor = 'rgba(255, 255, 255, 0.3)';
             uploadArea.style.background = 'rgba(255, 255, 255, 0.1)';
             
-            const files = Array.from(e.dataTransfer.files);
-            if (files.length > 0) {
-                alert(`已拖拽 ${files.length} 个文件：\n${files.map(f => f.name).join('\n')}`);
+            selectedFiles = Array.from(e.dataTransfer.files);
+            if (selectedFiles.length > 0) {
+                showFileModal(selectedFiles);
             }
         });
         
         console.log('🎉 文件处理应用加载成功！');
         console.log('📍 当前地址：', window.location.href);
         console.log('🌐 GitHub Pages 部署正常工作');
+        
+        // 显示加载成功消息
+        setTimeout(() => {
+            console.log('✅ 应用完全加载完成');
+        }, 1000);
     </script>
 </body>
 </html>
