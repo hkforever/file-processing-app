@@ -45,6 +45,12 @@
     <script type="text/babel">
         const { useState, useCallback, useRef } = React;
 
+        // 移除数字的辅助函数
+        const removeNumbers = (str) => {
+            if (!str) return '';
+            return str.replace(/\d+/g, '').trim();
+        };
+
         // 文件处理函数
         const readOrderFile = async (file) => {
             return new Promise((resolve, reject) => {
@@ -55,25 +61,23 @@
                         const workbook = XLSX.read(data, { type: 'array' });
                         const sheetName = workbook.SheetNames[0];
                         const worksheet = workbook.Sheets[sheetName];
-                        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                        const jsonData = XLSX.utils.sheet_to_json(worksheet);
                         
-                        if (jsonData.length < 2) {
+                        if (jsonData.length === 0) {
                             reject(new Error('文件格式不正确或没有数据'));
                             return;
                         }
                         
-                        const headers = jsonData[0];
-                        const rows = jsonData.slice(1);
+                        // 验证必要字段
+                        const requiredFields = ['订单编码', '网点编码', '网点名称', '商品编码', '商品名称', '销售单价(元)'];
+                        const hasRequiredFields = requiredFields.every(field => field in jsonData[0]);
                         
-                        const orderData = rows.map(row => {
-                            const obj = {};
-                            headers.forEach((header, index) => {
-                                obj[header] = row[index] || '';
-                            });
-                            return obj;
-                        }).filter(row => Object.values(row).some(val => val !== ''));
+                        if (!hasRequiredFields) {
+                            reject(new Error('文件格式不正确，缺少必要的订单字段（订单编码、网点编码、网点名称、商品编码、商品名称、销售单价）'));
+                            return;
+                        }
                         
-                        resolve(orderData);
+                        resolve(jsonData);
                     } catch (error) {
                         reject(new Error('文件读取失败: ' + error.message));
                     }
@@ -84,35 +88,72 @@
         };
 
         const transformOrderData = (orderData) => {
-            return orderData.map((order, index) => {
-                // 基础字段映射
-                const transformed = {
-                    序号: index + 1,
-                    订单号: order['订单号'] || order['单据编号'] || '',
-                    客户名称: order['客户名称'] || order['收货人'] || '',
-                    商品名称: order['商品名称'] || order['产品名称'] || '',
-                    规格: order['规格'] || order['商品规格'] || '',
-                    数量: parseFloat(order['数量'] || order['订购数量'] || 0),
-                    单价: parseFloat(order['单价'] || order['商品单价'] || 0),
-                    金额: 0,
-                    收货地址: order['收货地址'] || order['地址'] || '',
-                    联系电话: order['联系电话'] || order['手机号'] || '',
-                    备注: order['备注'] || order['订单备注'] || '',
-                    订单日期: order['订单日期'] || order['下单时间'] || new Date().toISOString().split('T')[0]
+            return orderData.map((order) => {
+                // 判断是否为赠品（根据商品类型判断）
+                const 是否赠品 = ["常规赠品", "活动赠品", "费用兑换品"].includes(order.商品类型) ? "是" : "";
+                
+                // 创建转换后的数据对象，严格按照原项目的字段映射
+                const transformedData = {
+                    // 保留原始订单数据的所有字段
+                    ...order,
+                    
+                    // 添加转换后的字段（按照导出模板的字段顺序）
+                    厂编: order.网点编码 || '',
+                    货号: order.商品编码 || '',
+                    "Q7平台经销商": "",
+                    业务员: removeNumbers(order.业务负责人 || ''),
+                    "业务类型": "",
+                    "主表备注": order.导入备注 || order.备注 || '',
+                    仓库: "传统仓",
+                    "付款方式": "",
+                    单价: "",
+                    单据单位: order.单位 || '',
+                    "单据单位单价": Number(order["销售单价(元)"] || 0),
+                    单据单位数量: order.销售数量 || 0,
+                    "单据类型": "",
+                    "发货地址": "",
+                    备注: "",
+                    "客户收货日期": "",
+                    "客户订单号": order.订单编码 || '',
+                    店号: "",
+                    批号: "",
+                    数量: "",
+                    是否赠品,
+                    理货员: "",
+                    "销售单号": "",
+                    "销售日期": "",
+                    "预计开票日": "",
+                    "预订货编号": ""
                 };
                 
-                // 计算金额
-                transformed.金额 = transformed.数量 * transformed.单价;
-                
-                return transformed;
+                return transformedData;
             });
         };
 
         const generateExportFile = (data) => {
             try {
-                const worksheet = XLSX.utils.json_to_sheet(data);
+                // 导出字段顺序，严格按照原项目的导出模板
+                const exportColumns = [
+                    "厂编", "货号", "Q7平台经销商", "业务员", "业务类型", "主表备注", 
+                    "仓库", "付款方式", "单价", "单据单位", "单据单位单价", "单据单位数量", 
+                    "单据类型", "发货地址", "备注", "客户收货日期", "客户订单号", "店号", 
+                    "批号", "数量", "是否赠品", "理货员", "销售单号", "销售日期", 
+                    "预计开票日", "预订货编号"
+                ];
+                
+                // 只提取需要导出的字段，过滤掉原始上传数据的字段
+                const filteredData = data.map(item => {
+                    const exportItem = {};
+                    exportColumns.forEach(column => {
+                        exportItem[column] = item[column] || '';
+                    });
+                    return exportItem;
+                });
+                
+                // 创建工作簿和工作表，指定列顺序
+                const worksheet = XLSX.utils.json_to_sheet(filteredData, { header: exportColumns });
                 const workbook = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(workbook, worksheet, '转换后订单');
+                XLSX.utils.book_append_sheet(workbook, worksheet, 'Converted Orders');
                 
                 const excelBuffer = XLSX.write(workbook, { bookType: 'xls', type: 'array' });
                 const blob = new Blob([excelBuffer], { type: 'application/vnd.ms-excel' });
@@ -252,15 +293,24 @@
             if (!data || data.length === 0) return null;
 
             const displayData = data.slice(0, 5); // 只显示前5条
+            
+            // 显示转换后的字段
+            const previewColumns = [
+                "厂编", "货号", "Q7平台经销商", "业务员", "业务类型", "主表备注", 
+                "仓库", "付款方式", "单价", "单据单位", "单据单位单价", "单据单位数量", 
+                "单据类型", "发货地址", "备注", "客户收货日期", "客户订单号", "店号", 
+                "批号", "数量", "是否赠品", "理货员", "销售单号", "销售日期", 
+                "预计开票日", "预订货编号"
+            ];
 
             return (
                 <div className="mt-8 fade-in">
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">数据预览 (显示前5条)</h3>
+                    <h3 className="text-lg font-medium text-gray-900 mb-4">转换后数据预览 (显示前5条)</h3>
                     <div className="overflow-x-auto">
                         <table className="min-w-full bg-white border border-gray-200 rounded-lg">
                             <thead className="bg-gray-50">
                                 <tr>
-                                    {Object.keys(displayData[0]).map((key) => (
+                                    {previewColumns.map((key) => (
                                         <th key={key} className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">
                                             {key}
                                         </th>
@@ -270,9 +320,9 @@
                             <tbody className="divide-y divide-gray-200">
                                 {displayData.map((row, index) => (
                                     <tr key={index} className="hover:bg-gray-50">
-                                        {Object.values(row).map((value, cellIndex) => (
+                                        {previewColumns.map((column, cellIndex) => (
                                             <td key={cellIndex} className="px-4 py-3 text-sm text-gray-900 border-b">
-                                                {String(value)}
+                                                {String(row[column] || '')}
                                             </td>
                                         ))}
                                     </tr>
