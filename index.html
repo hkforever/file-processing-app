@@ -1,333 +1,451 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>文件处理应用</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" crossorigin="anonymous" />
+    <title>元气森林 X 东华兄弟 订单转换工具</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 2rem;
-            text-align: center;
-        }
-        
-        .header {
-            margin-bottom: 3rem;
-        }
-        
-        .header h1 {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            background: linear-gradient(45deg, #fff, #f0f0f0);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .header p {
-            font-size: 1.2rem;
-            opacity: 0.9;
-        }
-        
         .upload-area {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 2px dashed rgba(255, 255, 255, 0.3);
-            border-radius: 15px;
-            padding: 3rem;
-            margin-bottom: 2rem;
+            border: 2px dashed #d1d5db;
             transition: all 0.3s ease;
         }
-        
         .upload-area:hover {
-            border-color: rgba(255, 255, 255, 0.6);
-            background: rgba(255, 255, 255, 0.15);
+            border-color: #3b82f6;
+            background-color: #f8fafc;
         }
-        
-        .upload-area i {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-            color: #ffd700;
+        .upload-area.dragover {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
         }
-        
-        .upload-area h3 {
-            font-size: 1.8rem;
-            margin-bottom: 1rem;
+        .processing-spinner {
+            animation: spin 1s linear infinite;
         }
-        
-        .upload-area p {
-            opacity: 0.9;
-            margin-bottom: 2rem;
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
-        
-        .btn {
-            background: linear-gradient(45deg, #ffd700, #ffed4e);
-            color: #333;
-            border: none;
-            padding: 1rem 2rem;
-            border-radius: 50px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
         }
-        
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(255, 215, 0, 0.3);
-        }
-        
-        .status {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 2rem;
-        }
-        
-        .status h3 {
-            color: #4ade80;
-            margin-bottom: 1rem;
-        }
-        
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-        
-        .modal-content {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            text-align: center;
-            max-width: 500px;
-            width: 90%;
-            color: #333;
-        }
-        
-        .modal-buttons {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-top: 20px;
-        }
-        
-        .modal-btn {
-            padding: 12px 24px;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: all 0.2s;
-            border: none;
-        }
-        
-        .modal-btn.primary {
-            background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        
-        .modal-btn.secondary {
-            background: #f8f9fa;
-            color: #333;
-            border: 2px solid #dee2e6;
-        }
-        
-        @media (max-width: 768px) {
-            .header h1 {
-                font-size: 2rem;
-            }
-            
-            .container {
-                padding: 1rem;
-            }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1><i class="fas fa-file-alt"></i> 文件处理应用</h1>
-            <p>GitHub Pages 部署成功！</p>
-        </div>
-        
-        <div class="upload-area" onclick="selectFile()">
-            <i class="fas fa-cloud-upload-alt"></i>
-            <h3>点击上传文件</h3>
-            <p>支持拖拽上传，多种文件格式</p>
-            <button class="btn">
-                <i class="fas fa-folder-open"></i> 选择文件
-            </button>
-        </div>
-        
-        <div class="status">
-            <h3><i class="fas fa-check-circle"></i> 部署状态</h3>
-            <p>✅ GitHub Pages 正常运行</p>
-            <p>🌐 域名：hkforever.github.io/file-processing-app</p>
-            <p>🚀 可以配置自定义域名了！</p>
-        </div>
-    </div>
-    
-    <!-- 文件确认模态框 -->
-    <div id="fileModal" class="modal">
-        <div class="modal-content">
-            <h3>文件上传确认</h3>
-            <p id="fileInfo"></p>
-            <div class="modal-buttons">
-                <button class="modal-btn primary" onclick="processFile()">开始处理</button>
-                <button class="modal-btn secondary" onclick="closeModal()">取消</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- 处理完成模态框 -->
-    <div id="completeModal" class="modal">
-        <div class="modal-content">
-            <div style="
-                width: 80px;
-                height: 80px;
-                background: linear-gradient(45deg, #4CAF50, #45a049);
-                border-radius: 50%;
-                margin: 0 auto 20px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 40px;
-                color: white;
-            ">✓</div>
-            <h3>处理完成！</h3>
-            <p>文件已成功处理</p>
-            <div class="modal-buttons">
-                <button class="modal-btn primary" onclick="downloadFile()">下载文件</button>
-                <button class="modal-btn secondary" onclick="continueUpload()">继续上传</button>
-            </div>
-        </div>
-    </div>
-    
-    <script>
-        let selectedFiles = [];
-        
-        function selectFile() {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.multiple = true;
-            input.accept = '*/*';
-            
-            input.onchange = function(e) {
-                selectedFiles = Array.from(e.target.files);
-                if (selectedFiles.length > 0) {
-                    showFileModal(selectedFiles);
+<body class="bg-gray-50">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useCallback, useRef } = React;
+
+        // 文件处理函数
+        const readOrderFile = async (file) => {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        const sheetName = workbook.SheetNames[0];
+                        const worksheet = workbook.Sheets[sheetName];
+                        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                        
+                        if (jsonData.length < 2) {
+                            reject(new Error('文件格式不正确或没有数据'));
+                            return;
+                        }
+                        
+                        const headers = jsonData[0];
+                        const rows = jsonData.slice(1);
+                        
+                        const orderData = rows.map(row => {
+                            const obj = {};
+                            headers.forEach((header, index) => {
+                                obj[header] = row[index] || '';
+                            });
+                            return obj;
+                        }).filter(row => Object.values(row).some(val => val !== ''));
+                        
+                        resolve(orderData);
+                    } catch (error) {
+                        reject(new Error('文件读取失败: ' + error.message));
+                    }
+                };
+                reader.onerror = () => reject(new Error('文件读取失败'));
+                reader.readAsArrayBuffer(file);
+            });
+        };
+
+        const transformOrderData = (orderData) => {
+            return orderData.map((order, index) => {
+                // 基础字段映射
+                const transformed = {
+                    序号: index + 1,
+                    订单号: order['订单号'] || order['单据编号'] || '',
+                    客户名称: order['客户名称'] || order['收货人'] || '',
+                    商品名称: order['商品名称'] || order['产品名称'] || '',
+                    规格: order['规格'] || order['商品规格'] || '',
+                    数量: parseFloat(order['数量'] || order['订购数量'] || 0),
+                    单价: parseFloat(order['单价'] || order['商品单价'] || 0),
+                    金额: 0,
+                    收货地址: order['收货地址'] || order['地址'] || '',
+                    联系电话: order['联系电话'] || order['手机号'] || '',
+                    备注: order['备注'] || order['订单备注'] || '',
+                    订单日期: order['订单日期'] || order['下单时间'] || new Date().toISOString().split('T')[0]
+                };
+                
+                // 计算金额
+                transformed.金额 = transformed.数量 * transformed.单价;
+                
+                return transformed;
+            });
+        };
+
+        const generateExportFile = (data) => {
+            try {
+                const worksheet = XLSX.utils.json_to_sheet(data);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, '转换后订单');
+                
+                const excelBuffer = XLSX.write(workbook, { bookType: 'xls', type: 'array' });
+                const blob = new Blob([excelBuffer], { type: 'application/vnd.ms-excel' });
+                return URL.createObjectURL(blob);
+            } catch (error) {
+                throw new Error('文件生成失败: ' + error.message);
+            }
+        };
+
+        // 文件上传组件
+        const FileUpload = ({ onFileUpload, disabled }) => {
+            const [isDragOver, setIsDragOver] = useState(false);
+            const fileInputRef = useRef(null);
+
+            const handleDragOver = useCallback((e) => {
+                e.preventDefault();
+                setIsDragOver(true);
+            }, []);
+
+            const handleDragLeave = useCallback((e) => {
+                e.preventDefault();
+                setIsDragOver(false);
+            }, []);
+
+            const handleDrop = useCallback((e) => {
+                e.preventDefault();
+                setIsDragOver(false);
+                
+                const files = Array.from(e.dataTransfer.files);
+                const validFile = files.find(file => 
+                    file.type.includes('sheet') || 
+                    file.type.includes('excel') || 
+                    file.name.endsWith('.xlsx') || 
+                    file.name.endsWith('.xls') || 
+                    file.name.endsWith('.csv')
+                );
+                
+                if (validFile) {
+                    onFileUpload(validFile);
+                } else {
+                    alert('请上传Excel或CSV文件');
+                }
+            }, [onFileUpload]);
+
+            const handleFileSelect = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    onFileUpload(file);
                 }
             };
-            
-            input.click();
-        }
-        
-        function showFileModal(files) {
-            const fileInfo = document.getElementById('fileInfo');
-            fileInfo.innerHTML = `已选择 ${files.length} 个文件：<br>${files.map(f => f.name).join('<br>')}`;
-            
-            const modal = document.getElementById('fileModal');
-            modal.style.display = 'flex';
-        }
-        
-        function closeModal() {
-            document.getElementById('fileModal').style.display = 'none';
-            selectedFiles = [];
-        }
-        
-        function processFile() {
-            document.getElementById('fileModal').style.display = 'none';
-            
-            // 模拟处理过程
-            setTimeout(() => {
-                document.getElementById('completeModal').style.display = 'flex';
-            }, 2000);
-        }
-        
-        function downloadFile() {
-            const content = `文件处理报告
-处理时间: ${new Date().toLocaleString()}
-处理文件: ${selectedFiles.map(f => f.name).join(', ')}
 
-GitHub Pages 部署成功！
-应用地址: https://hkforever.github.io/file-processing-app`;
-            
-            const blob = new Blob([content], { type: 'text/plain' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = '处理报告.txt';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
-        }
-        
-        function continueUpload() {
-            document.getElementById('completeModal').style.display = 'none';
-            selectedFiles = [];
-        }
-        
-        // 拖拽功能
-        const uploadArea = document.querySelector('.upload-area');
-        
-        uploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadArea.style.borderColor = 'rgba(255, 255, 255, 0.8)';
-            uploadArea.style.background = 'rgba(255, 255, 255, 0.2)';
-        });
-        
-        uploadArea.addEventListener('dragleave', (e) => {
-            e.preventDefault();
-            uploadArea.style.borderColor = 'rgba(255, 255, 255, 0.3)';
-            uploadArea.style.background = 'rgba(255, 255, 255, 0.1)';
-        });
-        
-        uploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadArea.style.borderColor = 'rgba(255, 255, 255, 0.3)';
-            uploadArea.style.background = 'rgba(255, 255, 255, 0.1)';
-            
-            selectedFiles = Array.from(e.dataTransfer.files);
-            if (selectedFiles.length > 0) {
-                showFileModal(selectedFiles);
-            }
-        });
-        
-        console.log('🎉 文件处理应用加载成功！');
-        console.log('📍 当前地址：', window.location.href);
-        console.log('🌐 GitHub Pages 部署正常工作');
-        
-        // 显示加载成功消息
-        setTimeout(() => {
-            console.log('✅ 应用完全加载完成');
-        }, 1000);
+            return (
+                <div className="mb-8">
+                    <div
+                        className={`upload-area p-8 rounded-xl text-center cursor-pointer ${isDragOver ? 'dragover' : ''} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onDrop={handleDrop}
+                        onClick={() => !disabled && fileInputRef.current?.click()}
+                    >
+                        <div className="flex flex-col items-center space-y-4">
+                            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                                <i className="fa-solid fa-cloud-upload-alt text-blue-600 text-2xl"></i>
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-medium text-gray-900 mb-2">上传订单文件</h3>
+                                <p className="text-gray-600">
+                                    拖拽文件到此处，或点击选择文件
+                                </p>
+                                <p className="text-sm text-gray-500 mt-2">
+                                    支持 .xlsx, .xls, .csv 格式
+                                </p>
+                            </div>
+                        </div>
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept=".xlsx,.xls,.csv"
+                            onChange={handleFileSelect}
+                            className="hidden"
+                            disabled={disabled}
+                        />
+                    </div>
+                </div>
+            );
+        };
+
+        // 处理状态组件
+        const ProcessingStatus = ({ status, message }) => {
+            if (status === 'idle') return null;
+
+            const getStatusContent = () => {
+                switch (status) {
+                    case 'processing':
+                        return (
+                            <div className="flex flex-col items-center space-y-4">
+                                <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full processing-spinner"></div>
+                                <p className="text-gray-700">正在处理订单数据...</p>
+                            </div>
+                        );
+                    case 'success':
+                        return (
+                            <div className="flex flex-col items-center space-y-4">
+                                <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
+                                    <i className="fa-solid fa-check text-green-600 text-2xl"></i>
+                                </div>
+                                <p className="text-gray-700">处理完成！</p>
+                            </div>
+                        );
+                    case 'error':
+                        return (
+                            <div className="flex flex-col items-center space-y-4">
+                                <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center">
+                                    <i className="fa-solid fa-exclamation text-red-600 text-2xl"></i>
+                                </div>
+                                <p className="text-gray-700">{message || '处理过程中出现错误'}</p>
+                            </div>
+                        );
+                    default:
+                        return null;
+                }
+            };
+
+            const bgColor = status === 'processing' ? 'bg-blue-50 border-blue-200' :
+                           status === 'success' ? 'bg-green-50 border-green-200' :
+                           status === 'error' ? 'bg-red-50 border-red-200' : 'bg-gray-50 border-gray-200';
+
+            return (
+                <div className={`w-full mt-8 p-8 rounded-xl border ${bgColor} flex flex-col items-center justify-center fade-in`}>
+                    {getStatusContent()}
+                </div>
+            );
+        };
+
+        // 订单预览组件
+        const OrderPreview = ({ data }) => {
+            if (!data || data.length === 0) return null;
+
+            const displayData = data.slice(0, 5); // 只显示前5条
+
+            return (
+                <div className="mt-8 fade-in">
+                    <h3 className="text-lg font-medium text-gray-900 mb-4">数据预览 (显示前5条)</h3>
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full bg-white border border-gray-200 rounded-lg">
+                            <thead className="bg-gray-50">
+                                <tr>
+                                    {Object.keys(displayData[0]).map((key) => (
+                                        <th key={key} className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">
+                                            {key}
+                                        </th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-200">
+                                {displayData.map((row, index) => (
+                                    <tr key={index} className="hover:bg-gray-50">
+                                        {Object.values(row).map((value, cellIndex) => (
+                                            <td key={cellIndex} className="px-4 py-3 text-sm text-gray-900 border-b">
+                                                {String(value)}
+                                            </td>
+                                        ))}
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                    <p className="text-sm text-gray-500 mt-2">
+                        共处理 {data.length} 条订单数据
+                    </p>
+                </div>
+            );
+        };
+
+        // 文件下载组件
+        const FileDownload = ({ fileName, fileUrl, disabled, onDownload }) => {
+            if (!fileUrl || disabled) return null;
+
+            return (
+                <div className="w-full mt-8 flex justify-center fade-in">
+                    <div className="flex flex-col items-center">
+                        <button
+                            onClick={onDownload}
+                            className="px-8 py-4 rounded-lg font-medium transition-all duration-300 flex items-center space-x-2 bg-green-500 text-white hover:bg-green-600 shadow-lg hover:shadow-xl"
+                        >
+                            <i className="fa-solid fa-download mr-2"></i>
+                            <span>下载转换后的文件</span>
+                        </button>
+                        <p className="text-xs text-gray-500 mt-2 text-center">
+                            文件名: {fileName}
+                        </p>
+                    </div>
+                </div>
+            );
+        };
+
+        // 主应用组件
+        const App = () => {
+            const [uploadedFile, setUploadedFile] = useState(null);
+            const [processingStatus, setProcessingStatus] = useState('idle');
+            const [processedData, setProcessedData] = useState([]);
+            const [exportFileUrl, setExportFileUrl] = useState(null);
+            const [errorMessage, setErrorMessage] = useState(null);
+
+            const handleFileUpload = async (file) => {
+                setUploadedFile(file);
+                setProcessingStatus('processing');
+                setErrorMessage(null);
+
+                try {
+                    // 读取订单文件
+                    const orderData = await readOrderFile(file);
+
+                    if (orderData.length === 0) {
+                        setProcessingStatus('error');
+                        setErrorMessage('文件中没有找到订单数据');
+                        return;
+                    }
+
+                    // 转换订单数据
+                    const transformedData = transformOrderData(orderData);
+                    setProcessedData(transformedData);
+
+                    // 生成导出文件
+                    const fileUrl = generateExportFile(transformedData);
+                    setExportFileUrl(fileUrl);
+
+                    // 更新状态
+                    setProcessingStatus('success');
+                } catch (error) {
+                    setProcessingStatus('error');
+                    setErrorMessage(error.message);
+                }
+            };
+
+            const handleDownload = () => {
+                if (!exportFileUrl || !uploadedFile) {
+                    alert('没有可下载的文件，请先上传并处理文件');
+                    return;
+                }
+
+                try {
+                    const originalName = uploadedFile.name.replace(/\.(xlsx|xls|csv)$/i, '');
+                    const timestamp = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+                    const downloadFileName = `converted_${originalName}_${timestamp}.xls`;
+
+                    const a = document.createElement('a');
+                    a.href = exportFileUrl;
+                    a.download = downloadFileName;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+
+                    alert('文件下载已开始');
+                } catch (error) {
+                    alert('下载失败: ' + error.message);
+                }
+            };
+
+            return (
+                <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+                    <div className="max-w-4xl mx-auto">
+                        {/* 页面标题 */}
+                        <div className="text-center mb-12">
+                            <h1 className="text-4xl font-bold text-gray-900 mb-4">
+                                元气森林 X 东华兄弟 订单转换工具
+                            </h1>
+                            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+                                请从汇财赋·经销商端后台·元气销售出库已发货中导出订单内容，再通过本网站转化导出订单内容
+                            </p>
+                        </div>
+
+                        {/* 主要内容区 */}
+                        <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+                            <div className="p-8">
+                                {/* 文件上传区域 */}
+                                <FileUpload
+                                    onFileUpload={handleFileUpload}
+                                    disabled={processingStatus === 'processing'}
+                                />
+
+                                {/* 处理状态显示 */}
+                                <ProcessingStatus
+                                    status={processingStatus}
+                                    message={errorMessage}
+                                />
+
+                                {/* 订单预览区域 */}
+                                <OrderPreview data={processedData} />
+
+                                {/* 下载区域 */}
+                                <FileDownload
+                                    fileName={uploadedFile ? `converted_${uploadedFile.name.replace(/\.(xlsx|xls|csv)$/i, '.xls')}` : 'orders.xls'}
+                                    fileUrl={exportFileUrl}
+                                    disabled={processingStatus !== 'success'}
+                                    onDownload={handleDownload}
+                                />
+                            </div>
+                        </div>
+
+                        {/* 功能说明 */}
+                        <div className="mt-12 grid md:grid-cols-3 gap-6">
+                            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+                                    <i className="fa-solid fa-upload text-blue-600 text-xl"></i>
+                                </div>
+                                <h3 className="text-lg font-medium text-gray-900 mb-2">上传订单</h3>
+                                <p className="text-gray-600">上传包含订单数据的Excel或CSV文件，系统支持标准导入模板格式。</p>
+                            </div>
+
+                            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+                                    <i className="fa-solid fa-magic text-purple-600 text-xl"></i>
+                                </div>
+                                <h3 className="text-lg font-medium text-gray-900 mb-2">自动转换</h3>
+                                <p className="text-gray-600">系统自动处理订单数据，应用预设的转换规则，生成标准导出格式。</p>
+                            </div>
+
+                            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+                                    <i className="fa-solid fa-download text-green-600 text-xl"></i>
+                                </div>
+                                <h3 className="text-lg font-medium text-gray-900 mb-2">下载结果</h3>
+                                <p className="text-gray-600">处理完成后，下载转换后的订单文件，可直接用于后续业务系统导入。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // 渲染应用
+        ReactDOM.render(<App />, document.getElementById('root'));
     </script>
 </body>
 </html>
