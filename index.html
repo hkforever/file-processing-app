@@ -142,83 +142,6 @@
             margin-bottom: 1rem;
         }
         
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-        
-        .modal-content {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            text-align: center;
-            max-width: 500px;
-            width: 90%;
-            color: #333;
-        }
-        
-        .modal-content h3 {
-            margin-bottom: 20px;
-            color: #333;
-        }
-        
-        .modal-content p {
-            margin-bottom: 20px;
-            color: #666;
-        }
-        
-        .modal-buttons {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        
-        .modal-btn {
-            padding: 12px 24px;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: all 0.2s;
-            border: none;
-        }
-        
-        .modal-btn.primary {
-            background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        
-        .modal-btn.secondary {
-            background: #f8f9fa;
-            color: #333;
-            border: 2px solid #dee2e6;
-        }
-        
-        .progress-bar {
-            width: 100%;
-            height: 20px;
-            background: #f0f0f0;
-            border-radius: 10px;
-            overflow: hidden;
-            margin: 20px 0;
-        }
-        
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
-            width: 0%;
-            transition: width 0.3s ease;
-            border-radius: 10px;
-        }
-        
         @media (max-width: 768px) {
             .header h1 {
                 font-size: 2rem;
@@ -278,56 +201,7 @@
         </div>
     </div>
     
-    <!-- 文件确认模态框 -->
-    <div id="fileModal" class="modal">
-        <div class="modal-content">
-            <h3>文件上传确认</h3>
-            <p id="fileInfo"></p>
-            <div class="modal-buttons">
-                <button class="modal-btn primary" onclick="confirmUpload()">确定</button>
-                <button class="modal-btn secondary" onclick="closeModal()">取消</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- 处理进度模态框 -->
-    <div id="progressModal" class="modal">
-        <div class="modal-content">
-            <h3>正在处理文件...</h3>
-            <div class="progress-bar">
-                <div id="progressFill" class="progress-fill"></div>
-            </div>
-            <p id="progressText">0%</p>
-        </div>
-    </div>
-    
-    <!-- 完成模态框 -->
-    <div id="completeModal" class="modal">
-        <div class="modal-content">
-            <div style="
-                width: 80px;
-                height: 80px;
-                background: linear-gradient(45deg, #4CAF50, #45a049);
-                border-radius: 50%;
-                margin: 0 auto 20px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 40px;
-                color: white;
-            ">✓</div>
-            <h3>处理完成！</h3>
-            <p>您的文件已成功处理完成</p>
-            <div class="modal-buttons">
-                <button class="modal-btn primary" onclick="downloadFile()">下载文件</button>
-                <button class="modal-btn secondary" onclick="continueUpload()">继续上传</button>
-            </div>
-        </div>
-    </div>
-    
     <script>
-        let selectedFiles = [];
-        
         function selectFile() {
             const input = document.createElement('input');
             input.type = 'file';
@@ -335,90 +209,13 @@
             input.accept = '*/*';
             
             input.onchange = function(e) {
-                selectedFiles = Array.from(e.target.files);
-                if (selectedFiles.length > 0) {
-                    showFileModal(selectedFiles);
+                const files = Array.from(e.target.files);
+                if (files.length > 0) {
+                    alert(`已选择 ${files.length} 个文件：\n${files.map(f => f.name).join('\n')}`);
                 }
             };
             
             input.click();
-        }
-        
-        function showFileModal(files) {
-            const fileInfo = document.getElementById('fileInfo');
-            fileInfo.innerHTML = `已选择 ${files.length} 个文件：<br>${files.map(f => f.name).join('<br>')}`;
-            
-            const modal = document.getElementById('fileModal');
-            modal.style.display = 'flex';
-        }
-        
-        function closeModal() {
-            document.getElementById('fileModal').style.display = 'none';
-            selectedFiles = [];
-        }
-        
-        function confirmUpload() {
-            document.getElementById('fileModal').style.display = 'none';
-            showProgressModal();
-            
-            // 模拟文件处理过程
-            let progress = 0;
-            const progressFill = document.getElementById('progressFill');
-            const progressText = document.getElementById('progressText');
-            
-            const interval = setInterval(() => {
-                progress += Math.random() * 15;
-                if (progress > 100) progress = 100;
-                
-                progressFill.style.width = progress + '%';
-                progressText.textContent = Math.round(progress) + '%';
-                
-                if (progress >= 100) {
-                    clearInterval(interval);
-                    setTimeout(() => {
-                        showCompleteModal();
-                    }, 500);
-                }
-            }, 200);
-        }
-        
-        function showProgressModal() {
-            document.getElementById('progressModal').style.display = 'flex';
-        }
-        
-        function showCompleteModal() {
-            document.getElementById('progressModal').style.display = 'none';
-            document.getElementById('completeModal').style.display = 'flex';
-        }
-        
-        function downloadFile() {
-            // 创建示例文件下载
-            const content = `文件处理完成报告
-处理时间: ${new Date().toLocaleString()}
-处理文件数量: ${selectedFiles.length}
-文件列表:
-${selectedFiles.map(f => `- ${f.name} (${(f.size / 1024).toFixed(2)} KB)`).join('\n')}
-
-感谢使用文件处理应用！`;
-            
-            const blob = new Blob([content], { type: 'text/plain' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = '处理报告.txt';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
-        }
-        
-        function continueUpload() {
-            document.getElementById('completeModal').style.display = 'none';
-            selectedFiles = [];
-            
-            // 重置进度条
-            document.getElementById('progressFill').style.width = '0%';
-            document.getElementById('progressText').textContent = '0%';
         }
         
         // 拖拽功能
@@ -441,9 +238,9 @@ ${selectedFiles.map(f => `- ${f.name} (${(f.size / 1024).toFixed(2)} KB)`).join(
             uploadArea.style.borderColor = 'rgba(255, 255, 255, 0.3)';
             uploadArea.style.background = 'rgba(255, 255, 255, 0.1)';
             
-            selectedFiles = Array.from(e.dataTransfer.files);
-            if (selectedFiles.length > 0) {
-                showFileModal(selectedFiles);
+            const files = Array.from(e.dataTransfer.files);
+            if (files.length > 0) {
+                alert(`已拖拽 ${files.length} 个文件：\n${files.map(f => f.name).join('\n')}`);
             }
         });
         
