@@ -108,7 +108,7 @@
                     "付款方式": "",
                     单价: "",
                     单据单位: order.单位 || '',
-                    "单据单位单价": Number(order["销售单价(元)"] || 0),
+                    "单据单位单价": Number(order["销售单价(元)"] || 0) || 0,
                     单据单位数量: order.销售数量 || 0,
                     "单据类型": "",
                     "发货地址": "",
@@ -145,7 +145,12 @@
                 const filteredData = data.map(item => {
                     const exportItem = {};
                     exportColumns.forEach(column => {
-                        exportItem[column] = item[column] || '';
+                        // 对于数值字段，确保0值不被转换为空字符串
+                        if (column === "单据单位单价" || column === "单据单位数量") {
+                            exportItem[column] = item[column] !== undefined && item[column] !== null ? item[column] : 0;
+                        } else {
+                            exportItem[column] = item[column] || '';
+                        }
                     });
                     return exportItem;
                 });
@@ -322,7 +327,10 @@
                                     <tr key={index} className="hover:bg-gray-50">
                                         {previewColumns.map((column, cellIndex) => (
                                             <td key={cellIndex} className="px-4 py-3 text-sm text-gray-900 border-b">
-                                                {String(row[column] || '')}
+                                                {column === "单据单位单价" || column === "单据单位数量" 
+                                                    ? String(row[column] !== undefined && row[column] !== null ? row[column] : 0)
+                                                    : String(row[column] || '')
+                                                }
                                             </td>
                                         ))}
                                     </tr>
